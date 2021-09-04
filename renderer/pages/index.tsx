@@ -1,4 +1,4 @@
-import { ipcRenderer, remote } from 'electron';
+import { app, ipcRenderer } from 'electron';
 import fs from 'fs';
 import Head from 'next/head';
 import path from 'path';
@@ -9,10 +9,10 @@ import Input from '../components/Input/Input';
 import styles from '../sass/Index.module.scss';
 
 function initProfiles(): VagrantProfile[] {
-	if (typeof window === 'undefined' || !remote || !remote.app) {
+	if (typeof window === 'undefined' || !app) {
 		return [];
 	} else {
-		const profilesFile = path?.join(remote.app.getPath('userData'), 'profiles.json') || '/';
+		const profilesFile = path?.join(app.getPath('userData'), 'profiles.json') || '/';
 		if (fs && !fs.existsSync(profilesFile)) {
 			fs.writeFileSync(profilesFile, '[]');
 		}
@@ -22,8 +22,8 @@ function initProfiles(): VagrantProfile[] {
 }
 
 function updateProfiles(profiles: VagrantProfile[]): void {
-	if (typeof window !== 'undefined' && remote && remote.app && fs) {
-		const profilesFile = path?.join(remote.app.getPath('userData'), 'profiles.json') || '/';
+	if (typeof window !== 'undefined' && app && fs) {
+		const profilesFile = path?.join(app.getPath('userData'), 'profiles.json') || '/';
 		if (!fs.existsSync(profilesFile)) {
 			fs.writeFileSync(profilesFile, '[]');
 		}
