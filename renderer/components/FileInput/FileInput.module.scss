@@ -1,0 +1,15 @@
+.main {
+	border: 2px solid #209cee;
+	padding: 1em;
+	display: block;
+	cursor: pointer;
+
+	.input {
+		height: 0;
+		width: 0;
+	}
+
+	&.drag {
+		border: 2px dashed #209cee;
+	}
+}

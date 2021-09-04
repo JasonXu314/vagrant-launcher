@@ -1,0 +1,29 @@
+{
+	"name": "vagrant-launcher",
+	"description": "Manager + Launcher for vagrant instances",
+	"version": "1.0.0",
+	"author": "Jason Xu <xinwen31415@gmail.com>",
+	"main": "app/background.js",
+	"scripts": {
+		"dev": "nextron",
+		"build": "nextron build",
+		"postinstall": "electron-builder install-app-deps",
+		"up": "yarn upgrade-interactive"
+	},
+	"dependencies": {
+		"electron-serve": "^1.1.0",
+		"electron-store": "^8.0.0",
+		"sass": "^1.39.0"
+	},
+	"devDependencies": {
+		"@types/node": "^14.14.31",
+		"@types/react": "^16.9.49",
+		"electron": "^13.1.7",
+		"electron-builder": "^22.11.7",
+		"next": "^11.0.1",
+		"nextron": "^7.0.0",
+		"react": "^17.0.2",
+		"react-dom": "^17.0.2",
+		"typescript": "^4.3.5"
+	}
+}
