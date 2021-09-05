@@ -1,4 +1,4 @@
-import { app, ipcRenderer } from 'electron';
+import { ipcRenderer } from 'electron';
 import fs from 'fs';
 import Head from 'next/head';
 import path from 'path';
@@ -9,10 +9,10 @@ import Input from '../components/Input/Input';
 import styles from '../sass/Index.module.scss';
 
 function initProfiles(): VagrantProfile[] {
-	if (typeof window === 'undefined' || !app) {
+	if (typeof window === 'undefined') {
 		return [];
 	} else {
-		const profilesFile = path?.join(app.getPath('userData'), 'profiles.json') || '/';
+		const profilesFile = path?.join(ipcRenderer.sendSync('data-path'), 'profiles.json') || '';
 		if (fs && !fs.existsSync(profilesFile)) {
 			fs.writeFileSync(profilesFile, '[]');
 		}
@@ -22,8 +22,8 @@ function initProfiles(): VagrantProfile[] {
 }
 
 function updateProfiles(profiles: VagrantProfile[]): void {
-	if (typeof window !== 'undefined' && app && fs) {
-		const profilesFile = path?.join(app.getPath('userData'), 'profiles.json') || '/';
+	if (typeof window !== 'undefined' && fs) {
+		const profilesFile = path?.join(ipcRenderer.sendSync('data-path'), 'profiles.json') || '';
 		if (!fs.existsSync(profilesFile)) {
 			fs.writeFileSync(profilesFile, '[]');
 		}
@@ -74,7 +74,7 @@ const Index: React.FC = () => {
 									ipcRenderer.send('close', profile.path);
 
 									new Promise<void>((resolve, reject) => {
-										ipcRenderer.on('close-reply', (_, arg) => {
+										ipcRenderer.once('close-reply', (_, arg) => {
 											if (arg.type === 'success') {
 												resolve();
 											} else if (arg.type === 'disconnect') {
@@ -105,7 +105,7 @@ const Index: React.FC = () => {
 									ipcRenderer.send('launch', profile.path);
 
 									new Promise<void>((resolve, reject) => {
-										ipcRenderer.on('launch-reply', (_, arg) => {
+										ipcRenderer.once('launch-reply', (_, arg) => {
 											if (arg.type === 'success') {
 												resolve();
 											} else if (arg.type === 'disconnect') {

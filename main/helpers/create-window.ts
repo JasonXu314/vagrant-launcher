@@ -10,7 +10,7 @@ export default (windowName: string, options: BrowserWindowConstructorOptions): B
 		height: options.height
 	};
 	let state = {};
-	let win;
+	let win: BrowserWindow;
 
 	const restore = () => store.get(key, defaultSize);
 
