@@ -31,12 +31,19 @@ function updateProfiles(profiles: VagrantProfile[]): void {
 	}
 }
 
+function getRunning(profiles: VagrantProfile[]): number | null {
+	return ipcRenderer.sendSync('get-running', profiles);
+}
+
 const Index: React.FC = () => {
 	const [profiles, setProfiles] = useState<VagrantProfile[]>(initProfiles());
 	const [newName, setNewName] = useState<string>('');
 	const [newPath, setNewPath] = useState<string>('');
 	const [starting, setStarting] = useState<number | null>(null);
-	const [running, setRunning] = useState<number | null>(null);
+	const [running, setRunning] = useState<number | null>(getRunning(profiles));
+	const [stopping, setStopping] = useState<number | null>(null);
+	const [err, setErr] = useState<string | null>(null);
+	const [alert, setAlert] = useState<string | null>(null);
 
 	return (
 		<div className={styles.main}>
@@ -50,13 +57,18 @@ const Index: React.FC = () => {
 					color="blue"
 					onClick={() => {
 						if (newName.trim().length !== 0 && newPath.trim().length !== 0) {
-							const newProfiles = [...profiles, { name: newName.trim(), path: newPath.trim().replace(path.sep + 'Vagrantfile', '') }];
+							if (profiles.find((profile) => profile.path === newPath)) {
+								setNewPath('');
+								setAlert('A Vagrant profile already exists for that folder!');
+							} else {
+								const newProfiles = [...profiles, { name: newName.trim(), path: newPath.trim().replace(path.sep + 'Vagrantfile', '') }];
 
-							setProfiles(newProfiles);
-							updateProfiles(newProfiles);
+								setProfiles(newProfiles);
+								updateProfiles(newProfiles);
 
-							setNewName('');
-							setNewPath('');
+								setNewName('');
+								setNewPath('');
+							}
 						}
 					}}>
 					Create Profile
@@ -67,7 +79,51 @@ const Index: React.FC = () => {
 					<div className={styles.profile} key={profile.path}>
 						<h4>{profile.name}</h4>
 						<p>Path: {profile.path}</p>
-						{running === i ? (
+						{running !== i ? (
+							starting === i ? (
+								<Button color="yellow">Starting...</Button>
+							) : (
+								<Button
+									color="green"
+									onClick={() => {
+										ipcRenderer.send('launch', profile.path);
+
+										new Promise<void>((resolve, reject) => {
+											ipcRenderer.once('launch-reply', (_, arg) => {
+												if (arg.type === 'success') {
+													resolve();
+												} else if (arg.type === 'disconnect') {
+													reject(new Error('We have no idea what happened, but something went wrong...'));
+												} else if (arg.type === 'error') {
+													reject(new Error(arg.err));
+												} else {
+													reject(
+														new Error(
+															`We have no idea what happened, but something went wrong... very wrong...\n${JSON.stringify(arg)}`
+														)
+													);
+												}
+											});
+										})
+											.then(() => {
+												setRunning(i);
+												setStarting(null);
+											})
+											.catch((err) => {
+												console.log(err);
+												setErr(err.message);
+												setRunning(getRunning(profiles));
+												setStarting(null);
+											});
+
+										setStarting(i);
+									}}>
+									Start
+								</Button>
+							)
+						) : stopping === i ? (
+							<Button color="yellow">Stopping...</Button>
+						) : (
 							<Button
 								color="red"
 								onClick={() => {
@@ -80,62 +136,56 @@ const Index: React.FC = () => {
 											} else if (arg.type === 'disconnect') {
 												reject(new Error('We have no idea what happened, but something went wrong...'));
 											} else if (arg.type === 'error') {
-												reject(arg.err);
+												reject(new Error(arg.err));
 											} else {
-												reject(new Error('We have no idea what happened, but something went wrong... very wrong...'));
+												reject(
+													new Error(`We have no idea what happened, but something went wrong... very wrong...\n${JSON.stringify(arg)}`)
+												);
 											}
 										});
 									})
 										.then(() => {
-											setRunning(i);
-											setStarting(null);
+											setRunning(null);
+											setStopping(null);
 										})
 										.catch((err) => {
 											console.log(err);
-											setRunning(null);
-											setStarting(null);
+											setErr(err.message);
+											setRunning(getRunning(profiles));
+											setStopping(null);
 										});
+
+									setStopping(i);
 								}}>
 								Stop
-							</Button>
-						) : (
-							<Button
-								color="blue"
-								onClick={() => {
-									ipcRenderer.send('launch', profile.path);
-
-									new Promise<void>((resolve, reject) => {
-										ipcRenderer.once('launch-reply', (_, arg) => {
-											if (arg.type === 'success') {
-												resolve();
-											} else if (arg.type === 'disconnect') {
-												reject(new Error('We have no idea what happened, but something went wrong...'));
-											} else if (arg.type === 'error') {
-												reject(arg.err);
-											} else {
-												reject(new Error('We have no idea what happened, but something went wrong... very wrong...'));
-											}
-										});
-									})
-										.then(() => {
-											setRunning(i);
-											setStarting(null);
-										})
-										.catch((err) => {
-											console.log(err);
-											setRunning(null);
-											setStarting(null);
-										});
-
-									setStarting(i);
-								}}
-								disabled={running !== null || starting !== null}>
-								Start
 							</Button>
 						)}
 					</div>
 				))}
 			</div>
+			{err && (
+				<>
+					<div className={styles.popup}>
+						Whoops! Bad shit happened:
+						<div>{err}</div>
+						<Button color="blue" onClick={() => setErr(null)}>
+							Dismiss
+						</Button>
+					</div>
+					<div className={styles.overlay} />
+				</>
+			)}
+			{alert && (
+				<>
+					<div className={styles.popup}>
+						<div>{alert}</div>
+						<Button color="blue" onClick={() => setAlert(null)}>
+							Dismiss
+						</Button>
+					</div>
+					<div className={styles.overlay} />
+				</>
+			)}
 		</div>
 	);
 };

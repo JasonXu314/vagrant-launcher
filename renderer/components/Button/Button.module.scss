@@ -1,5 +1,7 @@
-$red: #db1212;
+$red: #cc4444;
 $blue: #19a1e6;
+$green: #44aa44;
+$yellow: #ddcc00;
 
 .main {
 	position: relative;
@@ -11,16 +13,12 @@ $blue: #19a1e6;
 		border-radius: 6px;
 		transition: all 250ms ease-in-out;
 
-		&.red {
-			background-color: $red;
-			border: 1px solid lighten($red, 10%);
-			box-shadow: transparentize(lighten($red, 10%), 0.6) 0 2px 3px;
-		}
-
-		&.blue {
-			background-color: $blue;
-			border: 1px solid lighten($blue, 10%);
-			box-shadow: transparentize(lighten($blue, 10%), 0.6) 0 2px 3px;
+		@each $colorName, $color in ('red': $red, 'blue': $blue, 'green': $green, 'yellow': $yellow) {
+			&.#{$colorName} {
+				background-color: $color;
+				border: 1px solid lighten($color, 10%);
+				box-shadow: transparentize(lighten($color, 10%), 0.6) 0 2px 3px;
+			}
 		}
 
 		&:not(:disabled) {
@@ -31,16 +29,12 @@ $blue: #19a1e6;
 		&:not(:disabled):active {
 			transition: all 250ms ease-in-out;
 
-			&.red {
-				background-color: darken($red, 10%);
-				border: 1px solid $red;
-				box-shadow: transparentize($red, 0.6) 0px 2px 3px, lighten($red, 80%) 0 0 3px;
-			}
-
-			&.blue {
-				background-color: darken($blue, 10%);
-				border: 1px solid $blue;
-				box-shadow: transparentize($blue, 0.6) 0px 2px 3px, lighten($blue, 80%) 0 0 3px;
+			@each $colorName, $color in ('red': $red, 'blue': $blue, 'green': $green, 'yellow': $yellow) {
+				&.#{$colorName} {
+					background-color: darken($color, 10%);
+					border: 1px solid $color;
+					box-shadow: transparentize($color, 0.6) 0px 2px 3px, lighten($color, 80%) 0 0 3px;
+				}
 			}
 		}
 	}

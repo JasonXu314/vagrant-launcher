@@ -3,7 +3,7 @@ import styles from './Button.module.scss';
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 	hint?: string;
-	color: 'red' | 'blue';
+	color: 'red' | 'blue' | 'green' | 'yellow';
 }
 
 const Button: React.FC<React.PropsWithChildren<Props>> = ({ hint, color, children, ...rest }) => {
