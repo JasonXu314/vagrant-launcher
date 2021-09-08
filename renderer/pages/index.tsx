@@ -32,7 +32,11 @@ function updateProfiles(profiles: VagrantProfile[]): void {
 }
 
 function getRunning(profiles: VagrantProfile[]): number | null {
-	return ipcRenderer.sendSync('get-running', profiles);
+	if (typeof window !== 'undefined' && ipcRenderer) {
+		return ipcRenderer.sendSync('get-running', profiles);
+	} else {
+		return null;
+	}
 }
 
 const Index: React.FC = () => {
